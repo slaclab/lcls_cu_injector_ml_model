@@ -7,7 +7,7 @@ $ conda env create -f injmodel.yml
 ```
 or
 ```bash
-$ conda conda create --name injmodel --file injmodel.txt
+$ conda create --name injmodel --file injmodel.txt
 ```
 
 ## Basic Usage
