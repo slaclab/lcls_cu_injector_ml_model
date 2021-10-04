@@ -11,7 +11,7 @@ opt_var_names = ['SOL1:solenoid_field_scale','SQ01:b1_gradient','CQ01:b1_gradien
 opt_out_names = ['norm_emit_x','norm_emit_y']
 
 
-def getGroundTruth(Model,ref_point,varx,vary,varz): 
+def get_ground_truth(Model,ref_point,varx,vary,varz): 
     '''Returns normalized emittance prediction from the surrogate model
        for given settings of SOL1, SQ01, and CQ01 '''
     
@@ -28,17 +28,17 @@ def getGroundTruth(Model,ref_point,varx,vary,varz):
     x_in[:, Model.loc_in[opt_var_names[0]]] = varx
     x_in[:, Model.loc_in[opt_var_names[1]]] = vary
     x_in[:, Model.loc_in[opt_var_names[2]]] = varz
-
+   
     #output predictions
     y_out = Model.pred_machine_units(x_in) 
     
     #output is geometric emittance in transverse plane
     emitx = y_out[:,Model.loc_out['norm_emit_x']] #grab norm_emit_x out of the model
     emity = y_out[:,Model.loc_out['norm_emit_y']] #grab norm_emit_y out of the model
-    
+
     return np.sqrt(emitx*emity)
 
-def getBeamsize(Model,ref_point,varx,vary,varz,varscan): 
+def get_beamsize(Model,ref_point,varx,vary,varz,varscan): 
     '''Returns the beamsize (xrms, yrms) prediction [m] from the surrogate model
     for given settings of SOL1, SQ01, CQ01 and scanning quad QE04 '''
         

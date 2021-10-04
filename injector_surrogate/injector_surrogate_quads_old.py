@@ -32,7 +32,7 @@ class Surrogate_NN:
     
     def __init__(self, model_info_file = '../configs/model_info.json',
                  pv_info_file = '../configs/pvinfo.json',
-                 take_log_out= False
+                 take_log_out= True
                 ):
         
         
@@ -120,12 +120,6 @@ class Surrogate_NN:
             
             else:
                 return y
-            
-    def pred_raw_units(self, x):
-    
-            y = self.model_1.predict(x)
-
-            return y
 
         
     def load_saved_model(self, model_path = './', model_name = 'model_OTR2_NA_rms_emit_elu_2021-07-19T09_09_10-07_00'):
