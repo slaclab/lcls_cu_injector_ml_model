@@ -23,7 +23,7 @@
         "norm_emit_y": 1.0
     },
     "pv_unit": {
-        "CAMR:IN20:186:R_DIST": "(mm)",
+        "CAMR:IN20:186:R_DIST": "(µm)",
         "SOLN:IN20:121:BACT": "(kG*m)",
         "QUAD:IN20:121:BACT": "(kG)",
         "QUAD:IN20:122:BACT": "(kG)",
