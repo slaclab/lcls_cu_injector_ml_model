@@ -4,13 +4,16 @@ channels:
   - pytorch
   - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.10
   - pydantic>2.3
   - botorch>=0.8.2
   - ipykernel
   - ipywidgets
   - tqdm
   - matplotlib
+  - mlflow
+  - python-dotenv
+  - boto3
   - pip
   - pip:
       - git+https://github.com/slaclab/lume-model.git
