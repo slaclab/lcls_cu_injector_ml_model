@@ -1,0 +1,147 @@
+import os
+import torch
+import logging 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+import matplotlib.pyplot as plt
+import mlflow
+from dotenv import load_dotenv, find_dotenv
+from mlflow.tracking import MlflowClient
+from mlflow.models.signature import infer_signature
+from lume_model.utils import variables_from_yaml
+from lume_model.models import TorchModel, TorchModule
+
+# Load environment variables
+dotenv_path = find_dotenv(".env")
+if dotenv_path:
+    logger.info(f"Loading environment from: {dotenv_path}")
+    load_dotenv(dotenv_path)
+else:
+    logger.warning("Could not find .env file")
+
+mlflow_uri = os.getenv("MLFLOW_TRACKING_URI")
+if not mlflow_uri:
+    logger.error("MLFLOW_TRACKING_URI not found in environment. Check your .env file.")
+    raise EnvironmentError("MLFLOW_TRACKING_URI not found in environment.")
+else:
+    logger.info(f"MLFLOW_TRACKING_URI = {mlflow_uri}")
+    mlflow.set_tracking_uri(mlflow_uri)
+
+EXPERIMENT_NAME = "lcls-injector-ML"
+mlflow.set_experiment(EXPERIMENT_NAME)
+client = MlflowClient()
+logger.info(f"Using MLflow experiment: {EXPERIMENT_NAME}")
+
+# Get the next "Torch Model Run#" name
+experiment = client.get_experiment_by_name("lcls-injector-ML")
+all_runs = client.search_runs(experiment_ids=[experiment.experiment_id])
+
+run_numbers = []
+for run in all_runs:
+    run_name_tag = run.data.tags.get("mlflow.runName", "")
+    if run_name_tag.startswith("LUME Model EPICS Data Run"):
+        try:
+            num = int(run_name_tag.split("LUME Model EPICS Data Run")[-1].strip())
+            run_numbers.append(num)
+        except ValueError:
+            continue
+
+next_run_number = max(run_numbers, default=0) + 1
+run_name = f"LUME Model EPICS Data Run{next_run_number}"
+logger.info(f"Starting new MLflow run: {run_name}")
+
+with mlflow.start_run(run_name=run_name):
+    # ---------- Load Transformers ----------
+    logger.info("Loading input/output transformers...")
+    input_sim_to_nn = torch.load("model/input_sim_to_nn.pt")
+    output_sim_to_nn = torch.load("model/output_sim_to_nn.pt")
+    input_pv_to_sim = torch.load("model/input_pv_to_sim.pt")
+    output_pv_to_sim = torch.load("model/output_pv_to_sim.pt")
+
+    mlflow.log_param("input_transformers", f"{type(input_pv_to_sim).__name__} -> {type(input_sim_to_nn).__name__}")
+    mlflow.log_param("output_transformers", f"{type(output_sim_to_nn).__name__} -> {type(output_pv_to_sim).__name__}")
+
+    # ---------- Load Variable Specs ----------
+    logger.info("Loading variable specifications...")
+    input_variables, output_variables = variables_from_yaml("model/pv_variables.yml")
+    mlflow.log_param("input_variables", input_variables)
+    mlflow.log_param("output_variables", output_variables)
+    mlflow.log_artifact("model/pv_variables.yml")
+
+    # ---------- Load Models ----------
+    logger.info("Loading TorchModel and TorchModule from YAML...")
+    lume_model = TorchModel("model/pv_model.yml")
+    lume_module = TorchModule("model/pv_module.yml")
+    mlflow.log_artifact("model/pv_module.yml")
+
+    # ---------- Load Data and Predict ----------
+    logger.info("Loading test data and making predictions...")
+    inputs_small = input_pv_to_sim.untransform(torch.load("info/inputs_small.pt"))
+    outputs_small = output_pv_to_sim.untransform(torch.load("info/outputs_small.pt"))
+
+    with torch.no_grad():
+        predictions = lume_module(inputs_small)
+
+    mae = torch.mean(torch.abs(predictions - outputs_small)).item()
+    mlflow.log_metric("mean_absolute_error", mae)
+    logger.info(f"MAE: {mae}")
+
+    # ---------- Plot Full Output ----------
+    logger.info("Plotting full predictions...")
+    nrows, ncols = 3, 2
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10, 15))
+    for i, output_name in enumerate(lume_module.output_order):
+        ax_i = ax[i // ncols, i % ncols]
+        if i < outputs_small.shape[1]:
+            sort_idx = torch.argsort(outputs_small[:, i])
+            x_axis = torch.arange(outputs_small.shape[0])
+            ax_i.plot(x_axis, outputs_small[sort_idx, i], "C0x", label="outputs")
+            ax_i.plot(x_axis, predictions[sort_idx, i], "C1x", label="predictions")
+            ax_i.legend()
+            ax_i.set_title(output_name)
+    ax[-1, -1].axis('off')
+    fig.tight_layout()
+
+    plot_path = "epics_plot_lume.png"
+    plt.savefig(plot_path)
+    mlflow.log_artifact(plot_path)
+    plt.close()
+    logger.info(f"Plot saved and logged to MLflow: {plot_path}")
+
+    # ---------- Truncated Output ----------
+    logger.info("Creating truncated TorchModule...")
+    truncated_lume_module = TorchModule(
+        model=lume_model,
+        input_order=lume_model.input_names,
+        output_order=lume_model.output_names[0:2],
+    )
+
+    with torch.no_grad():
+        truncated_predictions = truncated_lume_module(inputs_small)
+
+    # ---------- Plot Truncated Output ----------
+    logger.info("Plotting truncated predictions...")
+    nrows, ncols = 1, 2
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10, 5))
+    for i, output_name in enumerate(truncated_lume_module.output_order):
+        sort_idx = torch.argsort(outputs_small[:, i])
+        x_axis = torch.arange(outputs_small.shape[0])
+        ax[i].plot(x_axis, outputs_small[sort_idx, i], "C0x", label="outputs")
+        ax[i].plot(x_axis, truncated_predictions[sort_idx, i], "C1x", label="predictions")
+        ax[i].legend()
+        ax[i].set_title(output_name)
+    fig.tight_layout()
+
+    fig_name = f"{run_name.replace(' ', '_').lower()}_epics_plot.png"
+    mlflow.log_figure(fig, fig_name)
+    logger.info(f"Logged figure: {fig_name}")
+    plt.close()
+    
+logger.info("MLflow run completed.")
+
+# End run if still active
+if mlflow.active_run() is not None:
+    mlflow.end_run()
+    logger.info("MLflow run ended.")
