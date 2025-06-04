@@ -106,4 +106,3 @@ except Exception as e:
 '''
 k2eg_client.close()
 logger.info("Done.")
-
