@@ -1,4 +1,5 @@
 import os
+import yaml
 import torch
 import logging
 import json
@@ -18,18 +19,13 @@ input_sim_to_nn = torch.load("model/input_sim_to_nn.pt")
 output_sim_to_nn = torch.load("model/output_sim_to_nn.pt")
 input_pv_to_sim = torch.load("model/input_pv_to_sim.pt")
 output_pv_to_sim = torch.load("model/output_pv_to_sim.pt")
-
 input_variables, output_variables = variables_from_yaml("model/pv_variables.yml")
-
 lume_model = TorchModel("model/pv_model.yml")
 lume_module = TorchModule("model/pv_module.yml")
 
 # Read live input from K2EG
 logger.info("Reading input PVs from live EPICS data using K2EG...")
-#os.environ['K2EG_PYTHON_CONFIGURATION_PATH_FOLDER'] = os.path.join(os.getcwd(), "k2eg")
-#app_name = f'app-three'
 k2eg_client = k2eg.dml('lcls', 'app-three')
-
 pv_map_path = os.path.join("info", "pv_mapping.json")
 pv_names = json.load(open(pv_map_path))['pv_name_to_sim_name']
 input_parameter_values = {'CAMR:IN20:186:R_DIST': None, 'Pulse_length': 1.8550514181818183}
@@ -57,9 +53,22 @@ except Exception as e:
     logger.error(f"Failed to compute R_DIST: {e}")
     input_parameter_values['CAMR:IN20:186:R_DIST'] = 0.0
 
+with open("model/pv_variables.yml", "r") as f:
+    yaml_data = yaml.safe_load(f)
 
-logger.info(f"Live input PV values: {input_parameter_values}")
-input_tensor = torch.tensor(list(input_parameter_values.values()), dtype=torch.float32).unsqueeze(0)
+input_variable_names = list(yaml_data["input_variables"].keys())
+ordered_input_values = []
+
+for pv_name in input_variable_names:
+    if pv_name not in input_parameter_values:
+        raise KeyError(f"Missing PV value for '{pv_name}' in input_parameter_values!")
+
+    val = input_parameter_values[pv_name]
+    ordered_input_values.append(val)
+    logger.info(f"Ordered Input PV: {pv_name} → {val}")
+
+
+input_tensor = torch.tensor(ordered_input_values, dtype=torch.float32).unsqueeze(0)
 #input_sim_tensor = input_pv_to_sim.transform(input_tensor)
 #inputs_small = input_sim_to_nn.transform(input_sim_tensor)
 
