@@ -13,36 +13,28 @@ import k2eg
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load transformers and model components
+# Load transformers and model
 logger.info("Loading transformers and model components...")
-input_sim_to_nn = torch.load("model/input_sim_to_nn.pt")
-output_sim_to_nn = torch.load("model/output_sim_to_nn.pt")
-input_pv_to_sim = torch.load("model/input_pv_to_sim.pt")
-output_pv_to_sim = torch.load("model/output_pv_to_sim.pt")
 input_variables, output_variables = variables_from_yaml("model/pv_variables.yml")
-lume_model = TorchModel("model/pv_model.yml")
 lume_module = TorchModule("model/pv_module.yml")
 
 # Read live input from K2EG
 logger.info("Reading input PVs from live EPICS data using K2EG...")
 k2eg_client = k2eg.dml('lcls', 'app-three')
 pv_map_path = os.path.join("info", "pv_mapping.json")
-pv_names = json.load(open(pv_map_path))['pv_name_to_sim_name']
-input_parameter_values = {'CAMR:IN20:186:R_DIST': None, 'Pulse_length': 1.8550514181818183}
+pv_names = lume_module.model.input_names # list of PV names in correct order
 
-for pv_name in pv_names.keys():
-    if pv_name not in input_parameter_values and 'OTRS' not in pv_name and ':' in pv_name:
-        input_parameter_values[pv_name] = None
+input_parameter_values = {}
+for pv_name in pv_names:
+    # Initialize to default values
+    input_parameter_values[pv_name] = input_variables[pv_names.index(pv_name)].default_value
 
-k2eg_pvs_to_monitor = ['ca://' + pv for pv in input_parameter_values.keys() if
-                       pv not in ['CAMR:IN20:186:R_DIST', 'Pulse_length']]
-
-for pv_name in k2eg_pvs_to_monitor:
-    try:
-        input_parameter_values[pv_name.replace('ca://', '')] = k2eg_client.get(pv_name, 5.0)["value"]
-    except Exception as e:
-        logger.warning(f"Failed to get PV {pv_name}: {e}")
-        input_parameter_values[pv_name.replace('ca://', '')] = 0.0
+    # Set available and non-constant inputs to PV values
+    if pv_name not in ['CAMR:IN20:186:R_DIST', 'Pulse_length'] and not input_variables[pv_names.index(pv_name)].is_constant:
+        try:
+            input_parameter_values[pv_name] = k2eg_client.get('ca://' + pv_name, 5.0)["value"]
+        except Exception as e:
+            logger.warning(f"Failed to get PV {pv_name}: {e}. Value kept at default value.")
 
 try:
     in_xrms_value = k2eg_client.get('ca://CAMR:IN20:186:XRMS')["value"]
@@ -50,28 +42,14 @@ try:
     rdist = math.sqrt(in_xrms_value ** 2 + in_yrms_value ** 2)
     input_parameter_values['CAMR:IN20:186:R_DIST'] = rdist
 except Exception as e:
-    logger.error(f"Failed to compute R_DIST: {e}")
-    input_parameter_values['CAMR:IN20:186:R_DIST'] = 0.0
+    logger.error(f"Failed to compute R_DIST: {e}. Value kept at default value.")  
 
-with open("model/pv_variables.yml", "r") as f:
-    yaml_data = yaml.safe_load(f)
+# Should always be in order now
+for pv_name, val in input_parameter_values.items(): 
+    logger.info(f"Input Dict: {pv_name} → {val}")
 
-input_variable_names = list(yaml_data["input_variables"].keys())
-ordered_input_values = []
-
-for pv_name in input_variable_names:
-    if pv_name not in input_parameter_values:
-        raise KeyError(f"Missing PV value for '{pv_name}' in input_parameter_values!")
-
-    val = input_parameter_values[pv_name]
-    ordered_input_values.append(val)
-    logger.info(f"Ordered Input PV: {pv_name} → {val}")
-
-
-input_tensor = torch.tensor(ordered_input_values, dtype=torch.float32).unsqueeze(0)
-#input_sim_tensor = input_pv_to_sim.transform(input_tensor)
-#inputs_small = input_sim_to_nn.transform(input_sim_tensor)
-
+# Create tensor for torch module
+input_tensor = torch.tensor(list(input_parameter_values.values())).to(dtype=lume_module.model.dtype, device=lume_module.model.device).unsqueeze(0)
 
 # Predict
 with torch.no_grad():
@@ -85,7 +63,7 @@ nrows, ncols = 3, 2
 fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(10, 15))
 for i, output_name in enumerate(lume_module.output_order):
     ax_i = ax[i // ncols, i % ncols]
-    ax_i.plot(predictions[0].detach().numpy(), "C1x", label="predictions")
+    ax_i.plot(predictions[i].detach().numpy(), "C1x", label="predictions")
     ax_i.legend()
     ax_i.set_title(output_name)
 ax[-1, -1].axis('off')
