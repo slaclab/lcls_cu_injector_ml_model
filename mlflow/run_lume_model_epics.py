@@ -1,6 +1,7 @@
 import os
 import torch
 import logging 
+import json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,31 +56,41 @@ logger.info(f"Starting new MLflow run: {run_name}")
 with mlflow.start_run(run_name=run_name):
     # ---------- Load Transformers ----------
     logger.info("Loading input/output transformers...")
-    input_sim_to_nn = torch.load("model/input_sim_to_nn.pt")
-    output_sim_to_nn = torch.load("model/output_sim_to_nn.pt")
-    input_pv_to_sim = torch.load("model/input_pv_to_sim.pt")
-    output_pv_to_sim = torch.load("model/output_pv_to_sim.pt")
+    input_sim_to_nn = torch.load("../model/input_sim_to_nn.pt")
+    output_sim_to_nn = torch.load("../model/output_sim_to_nn.pt")
+    input_pv_to_sim = torch.load("../model/input_pv_to_sim.pt")
+    output_pv_to_sim = torch.load("../model/output_pv_to_sim.pt")
 
     mlflow.log_param("input_transformers", f"{type(input_pv_to_sim).__name__} -> {type(input_sim_to_nn).__name__}")
     mlflow.log_param("output_transformers", f"{type(output_sim_to_nn).__name__} -> {type(output_pv_to_sim).__name__}")
 
     # ---------- Load Variable Specs ----------
     logger.info("Loading variable specifications...")
-    input_variables, output_variables = variables_from_yaml("model/pv_variables.yml")
-    mlflow.log_param("input_variables", input_variables)
-    mlflow.log_param("output_variables", output_variables)
-    mlflow.log_artifact("model/pv_variables.yml")
+    input_variables, output_variables = variables_from_yaml("../model/pv_variables.yml")
+   #mlflow.log_param("input_variables", input_variables)
+   # mlflow.log_param("output_variables", output_variables)
+    with open("input_vars.json", "w") as f:
+        json.dump([v.__dict__ for v in input_variables], f, indent=2)
+        mlflow.log_artifact("input_vars.json")
+
+    with open("output_vars.json", "w") as f:
+        json.dump([v.__dict__ for v in output_variables], f, indent=2)
+        mlflow.log_artifact("output_vars.json")
+
+    mlflow.log_param("num_input_vars", len(input_variables))
+    mlflow.log_param("num_output_vars", len(output_variables))
+    mlflow.log_artifact("../model/pv_variables.yml")
 
     # ---------- Load Models ----------
     logger.info("Loading TorchModel and TorchModule from YAML...")
-    lume_model = TorchModel("model/pv_model.yml")
-    lume_module = TorchModule("model/pv_module.yml")
-    mlflow.log_artifact("model/pv_module.yml")
+    lume_model = TorchModel("../model/pv_model.yml")
+    lume_module = TorchModule("../model/pv_module.yml")
+    mlflow.log_artifact("../model/pv_module.yml")
 
     # ---------- Load Data and Predict ----------
     logger.info("Loading test data and making predictions...")
-    inputs_small = input_pv_to_sim.untransform(torch.load("info/inputs_small.pt"))
-    outputs_small = output_pv_to_sim.untransform(torch.load("info/outputs_small.pt"))
+    inputs_small = input_pv_to_sim.untransform(torch.load("../info/inputs_small.pt"))
+    outputs_small = output_pv_to_sim.untransform(torch.load("../info/outputs_small.pt"))
 
     with torch.no_grad():
         predictions = lume_module(inputs_small)
@@ -104,11 +115,10 @@ with mlflow.start_run(run_name=run_name):
     ax[-1, -1].axis('off')
     fig.tight_layout()
 
-    plot_path = "epics_plot_lume.png"
-    plt.savefig(plot_path)
-    mlflow.log_artifact(plot_path)
+    fig_name = "epics_plot_lume.png"
+    mlflow.log_figure(fig, fig_name)
     plt.close()
-    logger.info(f"Plot saved and logged to MLflow: {plot_path}")
+    logger.info(f"Plot saved and logged to MLflow: {fig_name}")
 
     # ---------- Truncated Output ----------
     logger.info("Creating truncated TorchModule...")
@@ -140,6 +150,10 @@ with mlflow.start_run(run_name=run_name):
     plt.close()
     
 logger.info("MLflow run completed.")
+
+
+os.remove("input_vars.json")
+os.remove("output_vars.json")
 
 # End run if still active
 if mlflow.active_run() is not None:

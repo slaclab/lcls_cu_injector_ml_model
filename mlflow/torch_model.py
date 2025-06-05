@@ -16,6 +16,9 @@ from mlflow.tracking import MlflowClient
 from mlflow.models.signature import infer_signature
 
 # Load environment variables
+
+mlflow.set_tracking_uri(uri="https://ard-mlflow.slac.stanford.edu")
+"""
 dotenv_path = find_dotenv(".env")
 if dotenv_path:
     logger.info(f"Loading environment from: {dotenv_path}")
@@ -30,7 +33,7 @@ if not mlflow_uri:
 else:
     logger.info(f"MLFLOW_TRACKING_URI = {mlflow_uri}")
     mlflow.set_tracking_uri(mlflow_uri)
-
+"""
 EXPERIMENT_NAME = "lcls-injector-ML"
 mlflow.set_experiment(EXPERIMENT_NAME)
 client = MlflowClient()
@@ -56,9 +59,9 @@ logger.info(f"Starting new MLflow run: {run_name}")
 
 # Load base model and transformers
 logger.info("Loading model and transformers...")
-model = torch.load("model/model.pt")
-input_sim_to_nn = torch.load("model/input_sim_to_nn.pt")
-output_sim_to_nn = torch.load("model/output_sim_to_nn.pt")
+model = torch.load("../model/model.pt")
+input_sim_to_nn = torch.load("../model/input_sim_to_nn.pt")
+output_sim_to_nn = torch.load("../model/output_sim_to_nn.pt")
 
 # Define transformed model
 class TransformedModel(torch.nn.Module):
@@ -93,8 +96,8 @@ with mlflow.start_run(run_name=run_name):
 
     # Load data
     logger.info("Loading input/output data...")
-    inputs_small = torch.load("info/inputs_small.pt")
-    outputs_small = torch.load("info/outputs_small.pt")
+    inputs_small = torch.load("../info/inputs_small.pt")
+    outputs_small = torch.load("../info/outputs_small.pt")
     logger.info(f"Input shape: {inputs_small.shape}")
     logger.info(f"Output shape: {outputs_small.shape}")
 

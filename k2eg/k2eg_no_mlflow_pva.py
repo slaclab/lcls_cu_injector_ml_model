@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 
 # Load transformers and model
 logger.info("Loading transformers and model components...")
-input_variables, output_variables = variables_from_yaml("model/pv_variables.yml")
-lume_module = TorchModule("model/pv_module.yml")
+input_variables, output_variables = variables_from_yaml("../model/pv_variables.yml")
+lume_module = TorchModule("../model/pv_module.yml")
 
 # Read live input from K2EG
 logger.info("Reading input PVs from live EPICS data using K2EG...")
 k2eg_client = k2eg.dml('lcls', 'app-three')
-pv_map_path = os.path.join("info", "pv_mapping.json")
+pv_map_path = os.path.join("..", "info", "pv_mapping.json")
 pv_names = lume_module.model.input_names # list of PV names in correct order
 
 input_parameter_values = {}
@@ -32,13 +32,13 @@ for pv_name in pv_names:
     # Set available and non-constant inputs to PV values
     if pv_name not in ['CAMR:IN20:186:R_DIST', 'Pulse_length'] and not input_variables[pv_names.index(pv_name)].is_constant:
         try:
-            input_parameter_values[pv_name] = k2eg_client.get('ca://' + pv_name, 5.0)["value"]
+            input_parameter_values[pv_name] = k2eg_client.get('pva://' + pv_name, 5.0)["value"]
         except Exception as e:
             logger.warning(f"Failed to get PV {pv_name}: {e}. Value kept at default value.")
 
 try:
-    in_xrms_value = k2eg_client.get('ca://CAMR:IN20:186:XRMS')["value"]
-    in_yrms_value = k2eg_client.get('ca://CAMR:IN20:186:YRMS')["value"]
+    in_xrms_value = k2eg_client.get('pva://CAMR:IN20:186:XRMS')["value"]
+    in_yrms_value = k2eg_client.get('pva://CAMR:IN20:186:YRMS')["value"]
     rdist = math.sqrt(in_xrms_value ** 2 + in_yrms_value ** 2)
     input_parameter_values['CAMR:IN20:186:R_DIST'] = rdist
 except Exception as e:

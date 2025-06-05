@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import os
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,12 +15,15 @@ import mlflow.pytorch
 from mlflow.models.signature import infer_signature
 from mlflow.tracking import MlflowClient
 
+mlflow.set_tracking_uri(uri="https://ard-mlflow.slac.stanford.edu")
+"""
 # Load environment variables
 dotenv_path = find_dotenv(".env")
 if dotenv_path:
     logger.info(f"Loading environment from: {dotenv_path}")
     load_dotenv(dotenv_path)
-else:
+else:/sdf/home/g/gopikab/lcls-ml/lcls_cu_injector_ml_model/k2eg
+
     logger.warning("Could not find .env file")
 
  
@@ -30,7 +34,7 @@ if not mlflow_uri:
 else:
     logger.info(f"MLFLOW_TRACKING_URI = {mlflow_uri}")
     mlflow.set_tracking_uri(mlflow_uri)
-
+"""
 EXPERIMENT_NAME = "lcls-injector-ML"
 mlflow.set_experiment(EXPERIMENT_NAME)
 client = MlflowClient()
@@ -56,17 +60,17 @@ logger.info(f"Starting new MLflow run: {run_name}")
 
 with mlflow.start_run(run_name=run_name):
     # Load transformers
-    input_sim_to_nn = torch.load("model/input_sim_to_nn.pt")
-    output_sim_to_nn = torch.load("model/output_sim_to_nn.pt")
+    input_sim_to_nn = torch.load("../model/input_sim_to_nn.pt")
+    output_sim_to_nn = torch.load("../model/output_sim_to_nn.pt")
     logging.info("Loaded transformers")
 
      # Load variable specifications
-    input_vars, output_vars = variables_from_yaml("model/sim_variables.yml")
+    input_vars, output_vars = variables_from_yaml("../model/sim_variables.yml")
     logging.info("Loaded input and output variables")
 
     # Create and wrap model
     lume_model = TorchModel(
-        model="model/model.pt",
+        model="../model/model.pt",
         input_variables=input_vars,
         output_variables=output_vars,
         input_transformers=[input_sim_to_nn],
@@ -80,22 +84,33 @@ with mlflow.start_run(run_name=run_name):
     logging.info("Created and wrapped TorchModel")
 
     # Log parameters
-    mlflow.log_param("model_path", "model/model.pt")
+    mlflow.log_param("model_path", "../model/model.pt")
     mlflow.log_param("input_transformer", str(type(input_sim_to_nn)))
     mlflow.log_param("output_transformer", str(type(output_sim_to_nn)))
-    mlflow.log_param("input_vars", input_vars)
-    mlflow.log_param("output_vars", output_vars)
+    #mlflow.log_param("input_vars", input_vars)
+    #mlflow.log_param("output_vars", output_vars)
+    with open("input_vars.json", "w") as f:
+        json.dump([v.__dict__ for v in input_vars], f, indent=2)
+        mlflow.log_artifact("input_vars.json")
+
+    with open("output_vars.json", "w") as f:
+        json.dump([v.__dict__ for v in output_vars], f, indent=2)
+        mlflow.log_artifact("output_vars.json")
+
+
+    mlflow.log_param("num_input_vars", len(input_vars))
+    mlflow.log_param("num_output_vars", len(output_vars))
     logging.info("Logged parameters")
 
     # Log YAML artifacts
-    mlflow.log_artifact("model/sim_variables.yml")
-    mlflow.log_artifact("model/sim_model.yml")
-    mlflow.log_artifact("model/sim_module.yml")
+    mlflow.log_artifact("../model/sim_variables.yml")
+    mlflow.log_artifact("../model/sim_model.yml")
+    mlflow.log_artifact("../model/sim_module.yml")
     logging.info("Logged YAML files as artifacts")
 
      # Load sample inputs and make predictions
-    inputs_small = torch.load("info/inputs_small.pt")
-    outputs_small = torch.load("info/outputs_small.pt")
+    inputs_small = torch.load("../info/inputs_small.pt")
+    outputs_small = torch.load("../info/outputs_small.pt")
     with torch.no_grad():
         predictions = lume_module(inputs_small)
     logging.info("Performed inference on sample inputs")
@@ -130,6 +145,9 @@ with mlflow.start_run(run_name=run_name):
     logging.info(f"Logged figure: {fig_name}")
     plt.close()
     logging.info("Saved and logged comparison plot")
+
+os.remove("input_vars.json")
+os.remove("output_vars.json")
 
 # End run if still active
 if mlflow.active_run() is not None:
