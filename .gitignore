@@ -135,4 +135,4 @@ dmypy.json
 # macOS file system
 .DS_Store
 
-.env
+.ini

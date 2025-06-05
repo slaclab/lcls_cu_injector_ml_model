@@ -60,3 +60,32 @@ r_dist = np.sqrt(data["CAMR:IN20:186:XRMS"].values ** 2 + data["CAMR:IN20:186:YR
 ```
 
 We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data from the archive, this step needs to be completed in any data processing.
+
+## K2EG
+
+To get live PVs from K2EG, we need to set ENV VARIABLE K2EG_PYTHON_CONFIGURATION_PATH_FOLDER to point to the folder that contains lcls.ini
+
+## Containerization Steps 
+
+Steps for accessing the Stanford Container Registry can be found [here](https://docs.google.com/presentation/d/1RwIe0a0_7rOMosRrrxSBVvYLWTcBa9JFRROJaW1MyAY/edit?slide=id.g48a5b0b15c_0_32#slide=id.g48a5b0b15c_0_32). You need to make a project in [Gitlab](https://code.stanford.edu/) to access the Registry.
+
+```console
+podman build -t lcls-cu-injector-ml:0.2
+cat ~/.scr-token | docker login --username $USER --password-stdin http://scr.svc.stanford.edu
+podman tag lcls-cu-injector-ml:0.2 scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.2
+podman push scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.2
+```
+Log into the Kubernetes [vcluster](https://k8s.slac.stanford.edu/ad-accel-online-ml) and deploy the yaml
+
+```python
+kubectl apply - deploy.yaml
+```
+
+You can check the deployment by exec into the pod. 
+
+```console
+kubectl exec -ti <pod-name> -- bash
+cd k2eg
+python k2eg_no_mlflow_ca.py
+```
+This will fetch live PV values using K2eg and make predictions using the LCLS Cu Injector Model. Future work includes integrating with MLFLow.
