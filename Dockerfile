@@ -7,4 +7,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 # Copy project files
 COPY . .
-
+# Set working directory to the folder where code lives
+WORKDIR /app/k2eg
+# Default command to run script
+CMD ["python", "k2eg_output.py"]

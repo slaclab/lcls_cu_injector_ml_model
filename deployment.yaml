@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lcls-cu-injector-ml
+  labels:
+    app: lcls-cu-injector-ml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lcls-cu-injector-ml
+  template:
+    metadata:
+      labels:
+        app: lcls-cu-injector-ml
+    spec:
+      containers:
+        - name: lcls-cu-injector-ml
+          image: scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.8
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "500m"
+

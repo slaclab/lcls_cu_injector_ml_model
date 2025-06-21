@@ -10,6 +10,19 @@ from lume_model.models import TorchModule
 import k2eg
 from k2eg.serialization import Scalar
 
+# Setup start/stop
+import signal
+
+stop_requested = False
+
+def handle_shutdown(signum, frame):
+    global stop_requested
+    stop_requested = True
+    logger.info(f"Received shutdown signal ({signum}). Stopping gracefully...")
+
+signal.signal(signal.SIGINT, handle_shutdown)
+signal.signal(signal.SIGTERM, handle_shutdown)
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,7 +64,7 @@ with mlflow.start_run(run_name=run_name) as run:
     logger.info("Started MLflow parent run.")
 
     try:
-        while True:
+        while not stop_requested:
             input_parameter_values = {}
 
             for pv_name in pv_names:
@@ -104,9 +117,6 @@ with mlflow.start_run(run_name=run_name) as run:
             # Wait for 1 minute
             step+=1
             time.sleep(60)
-
-    except KeyboardInterrupt:
-        logger.info("Interrupted by user.")
 
     finally:
         k2eg_client.close()

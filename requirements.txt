@@ -17,5 +17,5 @@ pandas
 numpy
 pyyaml
 torch
-k2eg
+k2eg==0.2.16
 
