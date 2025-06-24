@@ -102,6 +102,10 @@ with mlflow.start_run(run_name=run_name) as run:
             try:
                 k2eg_client.put("pva://SIOC:SYS0:ML06:AO001", Scalar("value", predictions[0].item()), 10)
                 k2eg_client.put("pva://SIOC:SYS0:ML06:AO002", Scalar("value", predictions[1].item()), 10)
+                k2eg_client.put("pva://SIOC:SYS0:ML06:AO003", Scalar("value", predictions[2].item()), 10)
+                k2eg_client.put("pva://SIOC:SYS0:ML06:AO004", Scalar("value", predictions[3].item()), 10)
+                k2eg_client.put("pva://SIOC:SYS0:ML06:AO005", Scalar("value", predictions[4].item()), 10)
+
             except Exception as e:
                 logger.error(f"Failed to write predictions to EPICS: {e}")
 
