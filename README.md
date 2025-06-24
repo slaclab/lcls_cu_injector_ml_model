@@ -101,4 +101,23 @@ kubectl scale deployment lcls-cu-injector-ml --replicas=1
 ```bash
 kubectl rollout restart deployment lcls-cu-injector-ml
 ```
+## 📈 Model Predictions and Monitoring
 
+The deployed machine learning model generates five key predictions every minute based on real-time input data. These predictions are automatically logged to MLflow under the experiment lcls-injector-ML.
+
+To view the predictions:
+1. Open [MLflow](https://ard-mlflow.slac.stanford.edu)
+2. Navigate to the lcls-injector-ML experiment.
+3. Select the latest run.
+4. Choose the desired metric from the list to visualize the prediction history.
+
+## 🔄 Prediction Outputs
+
+These outputs can be monitored through the MLflow UI for historical analysis or via PV monitoring tools (e.g., pvmonitor, EPICS Archiver, or custom dashboards) for real-time observation
+
+The following predictions are logged and mapped to PVs as follows:
+1. OTRS_IN20_571_XRMS -> SIOC:SYS0:ML06:AO001
+2. OTRS_IN20_571_YRMS -> SIOC:SYS0:ML06:AO002
+3. sigma_z -> SIOC:SYS0:ML06:AO003
+4. norm_emit_x -> SIOC:SYS0:ML06:AO004
+5. norm_emit_y -> SIOC:SYS0:ML06:AO005
