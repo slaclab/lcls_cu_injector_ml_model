@@ -15,5 +15,4 @@ dependencies:
   - python-dotenv
   - boto3
   - pip
-  - pip:
-      - git+https://github.com/slaclab/lume-model.git
+  - lume-model

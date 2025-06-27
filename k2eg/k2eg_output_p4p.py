@@ -88,18 +88,16 @@ with mlflow.start_run(run_name=run_name) as run:
             logger.info("Writing predictions back to EPICS...")
             try:
                 ctxt = Context("pva")
-                #ogger.info(ctxt.get("SIOC:SYS0:ML06:AO001"))
-                ctxt.put("SIOC:SYS0:ML06:AO001", predictions[0].item())
-                #logger.info(ctxt.get("SIOC:SYS0:ML06:AO002"))
+                ctxt.put("SIOC:SYS0:ML06:AO001",predictions[0].item())
                 ctxt.put("SIOC:SYS0:ML06:AO002",predictions[1].item())
-                #k2eg_client.put('pva://SIOC:SYS0:ML06:AO001', predictions[0].item(), 1.0)
-                #k2eg_client.put('pva://SIOC:SYS0:ML06:AO002', predictions[1].item(), 1.0)
+                ctxt.put("SIOC:SYS0:ML06:AO003",predictions[2].item())
+                ctxt.put("SIOC:SYS0:ML06:AO004",predictions[3].item())
+                ctxt.put("SIOC:SYS0:ML06:AO005",predictions[4].item())
             except Exception as e:
                 logger.error(f"Failed to write predictions to EPICS: {e}")
 
 
-            # Log predictions as metrics with timestamp
-            timestamp_ms = int(time.time() * 1000)  # required in ms
+            # Log predictions as metrics 
             for i, name in enumerate(lume_module.model.output_names):
                 metric_name = name.replace(":", "_")
                 value = predictions[i].item() if isinstance(predictions[i], torch.Tensor) else predictions[i]

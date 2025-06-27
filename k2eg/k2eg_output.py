@@ -110,8 +110,7 @@ with mlflow.start_run(run_name=run_name) as run:
                 logger.error(f"Failed to write predictions to EPICS: {e}")
 
 
-            # Log predictions as metrics with timestamp
-            timestamp_ms = int(time.time() * 1000)  # required in ms
+            # Log predictions as metrics 
             for i, name in enumerate(lume_module.model.output_names):
                 metric_name = name.replace(":", "_")
                 value = predictions[i].item() if isinstance(predictions[i], torch.Tensor) else predictions[i]

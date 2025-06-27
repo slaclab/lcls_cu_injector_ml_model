@@ -69,6 +69,9 @@ To get live PVs from K2EG, we need to set ENV VARIABLE K2EG_PYTHON_CONFIGURATION
 
 Steps for accessing the Stanford Container Registry can be found [here](https://docs.google.com/presentation/d/1RwIe0a0_7rOMosRrrxSBVvYLWTcBa9JFRROJaW1MyAY/edit?slide=id.g48a5b0b15c_0_32#slide=id.g48a5b0b15c_0_32). You need to make a project in [Gitlab](https://code.stanford.edu/) to access the Registry.
 
+# Maintaining image
+Anytime, we create a new image, we update the tag for the docker image and we need to update it in deployment yaml as well to pick up the latest docker image.
+
 ```console
 podman build -t lcls-cu-injector-ml:0.2 .
 cat ~/.scr-token | docker login --username $USER --password-stdin http://scr.svc.stanford.edu
