@@ -4,11 +4,11 @@ ipykernel
 ipywidgets
 tqdm
 matplotlib
-mlflow
+mlflow==2.22.0
 python-dotenv
 boto3
 pip
-lume-model
+lume-model==1.9.3
 minio
 pytest
 pytest-cov
