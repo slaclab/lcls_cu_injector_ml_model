@@ -1,0 +1,3 @@
+[DEFAULT]
+kafka_broker_url=
+k2eg_cmd_topic=
