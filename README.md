@@ -78,7 +78,7 @@ cat ~/.scr-token | docker login --username $USER --password-stdin http://scr.svc
 podman tag lcls-cu-injector-ml:0.2 scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.2
 podman push scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.2
 ```
-Log into the Kubernetes [vcluster](https://k8s.slac.stanford.edu/ad-accel-online-ml) and deploy the yaml
+Log into the Kubernetes [vcluster](https://k8s.slac.stanford.edu/ad-accel-online-ml) and deploy the yaml. Don't forget to update the yaml with the latest image tag.
 
 ```python
 kubectl apply -f deployment.yaml
