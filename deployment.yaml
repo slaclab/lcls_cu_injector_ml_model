@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: lcls-cu-injector-ml
-          image: scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.13
+          image: scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.14
           imagePullPolicy: Always
           resources:
             limits:
