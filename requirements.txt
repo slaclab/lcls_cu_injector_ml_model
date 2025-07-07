@@ -1,8 +1,5 @@
 pydantic>2.3
 botorch>=0.8.2
-ipykernel
-ipywidgets
-tqdm
 matplotlib
 mlflow==2.22.0
 python-dotenv
@@ -10,11 +7,6 @@ boto3
 pip
 lume-model==1.9.3
 minio
-pytest
-pytest-cov
-scipy
-pandas
-numpy
 pyyaml
 torch
 k2eg==0.2.16

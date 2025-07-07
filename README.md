@@ -61,6 +61,12 @@ r_dist = np.sqrt(data["CAMR:IN20:186:XRMS"].values ** 2 + data["CAMR:IN20:186:YR
 
 We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data from the archive, this step needs to be completed in any data processing.
 
+## MLOps
+
+
+<br/>
+<img src="InjectorModel-MLOps.drawio.png" alt="drawing" width="1000"/>
+<br/><br/>
 ## K2EG
 
 To get live PVs from K2EG, we need to set ENV VARIABLE K2EG_PYTHON_CONFIGURATION_PATH_FOLDER to point to the folder that contains lcls.ini
