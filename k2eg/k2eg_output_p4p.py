@@ -52,7 +52,6 @@ with mlflow.start_run(run_name=run_name) as run:
     #Register model to mlflow
     lume_module.register_to_mlflow("model", "lcls_cu_injector_model", run_name=run_name)
 
-
     try:
         while True:
             input_parameter_values = {}
