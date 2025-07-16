@@ -49,10 +49,8 @@ k2eg_client = k2eg.dml('lcls', 'app-three')
 step = 0
 with mlflow.start_run(run_name=run_name) as run:
     logger.info("Started MLflow run.")
-    input_example = torch.load("../info/inputs_small.pt")
-    input_example = lume_module.model.input_transformers[0].untransform(input_example)
     #Register model to mlflow
-    lume_module.register_to_mlflow(input_example, "model", "lcls_cu_injector_model", run_name=run_name)
+    lume_module.register_to_mlflow("model", "lcls_cu_injector_model", run_name=run_name)
 
 
     try:
