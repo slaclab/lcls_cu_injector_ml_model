@@ -86,9 +86,9 @@ output_variables:
   sigma_z: {variable_class: ScalarVariable}
   norm_emit_x: {variable_class: ScalarVariable}
   norm_emit_y: {variable_class: ScalarVariable}
-model: model.pt
-input_transformers: [input_pv_to_sim.pt, input_sim_to_nn.pt]
-output_transformers: [output_sim_to_nn.pt, output_pv_to_sim.pt]
+model: resources/model.pt
+input_transformers: [resources/input_pv_to_sim.pt, resources/input_sim_to_nn.pt]
+output_transformers: [resources/output_sim_to_nn.pt, resources/output_pv_to_sim.pt]
 output_format: tensor
 device: cpu
 fixed_model: true
