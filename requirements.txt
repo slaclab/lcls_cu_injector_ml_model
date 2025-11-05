@@ -1,7 +1,7 @@
 pydantic>2.3
 botorch>=0.8.2
 matplotlib
-mlflow==2.22.0
+mlflow==3.4.0
 python-dotenv
 boto3
 pip
