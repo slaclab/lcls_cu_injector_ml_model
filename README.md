@@ -65,7 +65,7 @@ We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data fr
 
 
 <br/>
-<img src="InjectorModel-MLOps.drawio.png" alt="drawing" width="1000"/>
+<img src="MLOps.drawio.png" alt="drawing" width="1000"/>
 <br/><br/>
 
 ## K2EG
