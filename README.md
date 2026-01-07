@@ -1,27 +1,51 @@
 # LCLS Cu Injector NN Model
 
-Contains the files corresponding to the LCLS Cu injector NN surrogate model and example notebooks illustrating how to load and use the model. Although not required, using [LUME-model](https://github.com/slaclab/lume-model) is recommended.
+This repository contains the model files corresponding to the LCLS Cu injector NN surrogate model, and example notebooks illustrating how to load and use the model. Using [LUME-model](https://github.com/slaclab/lume-model) is recommended.
 
 ## Model Description
 
-The model was trained by Auralee to predict beam properties at OTR2 using injector PVs for LCLS. As the model was trained with normalized data, input and output transformations have to be applied to use it on simulation data. Another layer of transformations is required for using it with EPICS data. See provided examples for more information.
+The model was trained on IMPACT-T simulation data by Auralee Edelen to predict beam properties at OTR2 using injector PVs for LCLS. As the model was trained with normalized data, input and output transformations have to be applied to use it on simulation data. Another layer of transformations is required for using it with EPICS data. See provided examples for more information.
+
+The model YAML provided in this repo handles the full PV to sim to model transformations.
 
 <br/>
-<img src="transformers.png" alt="drawing" width="1000"/>
+<img src="docs/transformers.png" alt="drawing" width="1000"/>
 <br/><br/>
 
-## Environment
+## Dependencies
 
 ```shell
-conda env create -f environment.yml
+lume-model
 ```
+
+## Usage
+
+From the main repository directory, call
+
+```python
+from lume_model.models import TorchModel
+
+# load model from yaml
+model = TorchModel("model_config.yaml")
+
+# evaluate the model at a given point
+print(model.evaluate({"QUAD:IN20:425:BACT": -1}))
+
+# get model input variables
+print(model.input_variables)
+
+# get model output variables
+print(model.output_variables)
+```
+
+NOTE: when not specified, input variables are set to their default values as defined in model_config.yaml
 
 ## Examples
 
-* [Load and print model information](info.ipynb)
-* [Load as torch model](torch_model.ipynb)
-* [Load as LUME-model](lume_model.ipynb)
-* [Load as LUME-model for use with EPICS data](lume_model_epics.ipynb)
+* [Load and print model information](docs/info.ipynb)
+* [Load as torch model](docs/torch_model.ipynb)
+* [Load as LUME-model](docs/lume_model.ipynb)
+* [Load as LUME-model for use with EPICS data](docs/lume_model_epics.ipynb)
 
 ## Default Input Variables
 
@@ -61,73 +85,5 @@ r_dist = np.sqrt(data["CAMR:IN20:186:XRMS"].values ** 2 + data["CAMR:IN20:186:YR
 
 We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data from the archive, this step needs to be completed in any data processing.
 
-## MLOps
 
 
-<br/>
-<img src="MLOps.drawio.png" alt="drawing" width="1000"/>
-<br/><br/>
-
-## K2EG
-
-To get live PVs from K2EG, we need to set ENV VARIABLE K2EG_PYTHON_CONFIGURATION_PATH_FOLDER to point to the folder that contains lcls.ini
-
-## Containerization Steps 
-
-Steps for accessing the Stanford Container Registry can be found [here](https://docs.google.com/presentation/d/1RwIe0a0_7rOMosRrrxSBVvYLWTcBa9JFRROJaW1MyAY/edit?slide=id.g48a5b0b15c_0_32#slide=id.g48a5b0b15c_0_32). You need to make a project in [Gitlab](https://code.stanford.edu/) to access the Registry.
-
-# Maintaining image
-Anytime, we create a new image, we update the tag for the docker image and we need to update it in deployment yaml as well to pick up the latest docker image.
-
-```console
-podman build -t lcls-cu-injector-ml:0.2 .
-cat ~/.scr-token | docker login --username $USER --password-stdin http://scr.svc.stanford.edu
-podman tag lcls-cu-injector-ml:0.2 scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.2
-podman push scr.svc.stanford.edu/gopikab/lcls-cu-injector-ml:0.2
-```
-Log into the Kubernetes [vcluster](https://k8s.slac.stanford.edu/ad-accel-online-ml) and deploy the yaml. Don't forget to update the yaml with the latest image tag.
-
-```python
-kubectl apply -f deployment.yaml
-```
-
-
-## Deployment
-
-🔍 Check if it's running:
-```bash
-kubectl get pods
-kubectl logs <pod-name>
-```
-🛑 To stop the script:
-```bash
-kubectl scale deployment lcls-cu-injector-ml --replicas=0
-```
-▶️ To start again:
-```bash
-kubectl scale deployment lcls-cu-injector-ml --replicas=1
-```
-🔁 To restart the container:
-```bash
-kubectl rollout restart deployment lcls-cu-injector-ml
-```
-## 📈 Model Predictions and Monitoring
-
-The deployed machine learning model generates five key predictions every minute based on real-time input data. These predictions are automatically logged to MLflow under the experiment lcls-injector-ML.
-
-To view the predictions:
-1. Open [MLflow](https://ard-mlflow.slac.stanford.edu)
-2. Navigate to the lcls-injector-ML experiment.
-3. Select the latest run.
-4. Choose the desired metric from the list to visualize the prediction history.
-
-## 🔄 Prediction Outputs
-
-These outputs can be monitored through the MLflow UI for historical analysis or via PV monitoring tools (e.g., pvmonitor, EPICS Archiver, or custom dashboards) for real-time observation
-
-The following predictions are logged and mapped to PVs as follows:
-1. OTRS_IN20_571_XRMS -> SIOC:SYS0:ML06:AO001
-2. OTRS_IN20_571_YRMS -> SIOC:SYS0:ML06:AO002
-3. sigma_z -> SIOC:SYS0:ML06:AO003
-4. norm_emit_x -> SIOC:SYS0:ML06:AO004
-5. norm_emit_y -> SIOC:SYS0:ML06:AO005
