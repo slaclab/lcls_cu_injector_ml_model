@@ -42,22 +42,17 @@ NOTE: when not specified, input variables are set to their default values as def
 
 ## Examples
 
-* [Load and print model information](docs/info.ipynb)
-* [Load as torch model](docs/torch_model.ipynb)
-* [Load as LUME-model](docs/lume_model.ipynb)
-* [Load as LUME-model for use with EPICS data](docs/lume_model_epics.ipynb)
+* [Load and print model information](docs/examples/info.ipynb)
+* [Load as LUME-model for use with EPICS data](docs/examples/lume_model_epics.ipynb)
 
 ## Default Input Variables
 
-The default value for `QE01:b1_gradient` in the [simulation variable specification](model/sim_variables.yml) has been noticed to lie outside the given value range (likewise for `QUAD:IN20:425:BACT` in the [PV variable specification](model/sim_variables.yml)).  Thus, a new value was determined by minimizing the model prediction of the transverse beam size within the valid range (documented in [this notebook](correct_inconsistent_default_value.ipynb)).
+The default value for `QE01:b1_gradient` in the [simulation variable specification](https://github.com/slaclab/lcls_cu_injector_ml_model/blob/old-deployment/model/sim_variables.yml) 
+has been noticed to lie outside the given value range (likewise for `QUAD:IN20:425:BACT` in the [PV variable specification](https://github.com/slaclab/lcls_cu_injector_ml_model/blob/old-deployment/model/pv_variables.yml)).  
+Thus, a new value was determined by minimizing the model prediction of the transverse beam size within the valid range 
+(documented in [this notebook](https://github.com/slaclab/lcls_cu_injector_ml_model/blob/old-deployment/correct_inconsistent_default_value.ipynb)).
 
 ## Notes about Working with EPICS PV Values
-
-### OTR2 / OTR3
-
-The surrogate model was trained on predictions for OTR2. However, the OTR2 screen has been broken for a number of months and is currently unavailable for measurements. OTR3 can be used instead as in theory, there shouldn't be too much difference between the two. There are a number of quadrupoles between the two but generally these aren't changed and should stay relatively consistent. The PV for OTR3 replaces 571 with 621 to become `OTRS:IN20:621:XRMS` etc.
-
-We don't yet have a confirmed time for when OTR2 will be back in action.
 
 ### Unmeasured Input PVs
 
@@ -69,11 +64,11 @@ This is the **pulse length** within the simulation. There has been some discussi
 
 #### `L0B_scale:voltage`
 
-As demonstrated by the train input min and max values in [model.json](info/model.json), this value was treated as a constant when training the surrogate model. However in reality, it's PV value `ACCL:IN20:400:L0B_ADES` shows a distribution of values. If it was to be used in the model for predictions, the error would increase dramatically and therefore any measured values from EPICS are overwritten by the value seen during training, scaled to PV units.
+As demonstrated by the train input min and max values in [model.json](https://github.com/slaclab/lcls_cu_injector_ml_model/blob/old-deployment/info/model.json), this value was treated as a constant when training the surrogate model. However in reality, its PV value `ACCL:IN20:400:L0B_ADES` shows a distribution of values. If it was to be used in the model for predictions, the error would increase dramatically and therefore any measured values from EPICS are overwritten by the value seen during training, scaled to PV units.
 
 #### `distgen:total_charge:value`
 
-As above, the **charge value** was constant in the training dataset but it's PV value `FBCK:BCI0:1:CHRG_S` shows a distribution of values. Measured values from EPICS are overwritten by the value seen during training, scaled to PV units.
+As above, the **charge value** was constant in the training dataset but its PV value `FBCK:BCI0:1:CHRG_S` shows a distribution of values. Measured values from EPICS are overwritten by the value seen during training, scaled to PV units.
 
 #### `distgen:r_dist:sigma_xy:value`
 
@@ -84,6 +79,3 @@ r_dist = np.sqrt(data["CAMR:IN20:186:XRMS"].values ** 2 + data["CAMR:IN20:186:YR
 ```
 
 We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data from the archive, this step needs to be completed in any data processing.
-
-
-
