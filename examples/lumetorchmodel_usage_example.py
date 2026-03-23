@@ -1,5 +1,5 @@
 """
-Example usage of LUMETorchModel with LCLS FEL surrogate model.
+Example usage of LUMETorchModel with LCLS Cu Inj surrogate model.
 
 This script demonstrates how to:
 1. Load a TorchModel from a yaml configuration
@@ -13,7 +13,7 @@ from lume_torch.models import TorchModel
 
 def main():
     # Load the torch model from yaml configuration
-    model = TorchModel("model_config.yaml")
+    model = TorchModel("my_lume_torch_model.yaml")
     
     # Wrap it in LUMETorchModel
     ltmodel = LUMETorchModel(model)
