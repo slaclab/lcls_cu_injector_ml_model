@@ -13,7 +13,7 @@ from lume_torch.models import TorchModel
 
 def main():
     # Load the torch model from yaml configuration
-    model = TorchModel("my_lume_torch_model.yaml")
+    model = TorchModel("model_config.yaml")
     
     # Wrap it in LUMETorchModel
     ltmodel = LUMETorchModel(model)
