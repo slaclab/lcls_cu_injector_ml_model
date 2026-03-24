@@ -31,9 +31,9 @@ def main():
     print(f"\nInputs: {inputs}")
     
     # Show all supported variables
-    print("\nSupported variables:")
-    print(f"  Input variables: {ltmodel.torch_model.input_names}")
-    print(f"  Output variables: {ltmodel.torch_model.output_names}")
+    print(f"\nSupported variables: {ltmodel.supported_variables}")
+    print(f"\nInput variables: {ltmodel.torch_model.input_names}")
+    print(f"\nOutput variables: {ltmodel.torch_model.output_names}")
     
     # Test reset functionality
     ltmodel.reset()
