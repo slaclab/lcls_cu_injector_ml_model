@@ -29,16 +29,16 @@ def main():
     # Get inputs (to verify what was set)
     inputs = ltmodel.get(ltmodel.torch_model.input_names)
     print(f"\nInputs: {inputs}")
+
+    # Test reset functionality
+    ltmodel.reset()
+
     
     # Show all supported variables
     print(f"\nSupported variables: {ltmodel.supported_variables}")
     print(f"\nInput variables: {ltmodel.torch_model.input_names}")
     print(f"\nOutput variables: {ltmodel.torch_model.output_names}")
     
-    # Test reset functionality
-    ltmodel.reset()
-    inputs_after_reset = ltmodel.get(ltmodel.torch_model.input_names)
-    print(f"\nInputs after reset: {inputs_after_reset}")
 
 
 if __name__ == "__main__":
