@@ -79,3 +79,6 @@ r_dist = np.sqrt(data["CAMR:IN20:186:XRMS"].values ** 2 + data["CAMR:IN20:186:YR
 ```
 
 We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data from the archive, this step needs to be completed in any data processing.
+
+### Read-only inputs
+Inputs `CAMR:IN20:186:R_DIST` and `Pulse_length` are read-only.
