@@ -97,11 +97,21 @@ input_variables:
     value_range: [-7.557932980106783, -1.0800286565992732]
     units: kG
 output_variables:
-  OTRS:IN20:571:XRMS: {variable_class: TorchScalarVariable}
-  OTRS:IN20:571:YRMS: {variable_class: TorchScalarVariable}
-  sigma_z: {variable_class: TorchScalarVariable}
-  norm_emit_x: {variable_class: TorchScalarVariable}
-  norm_emit_y: {variable_class: TorchScalarVariable}
+  OTRS:IN20:571:XRMS:
+    variable_class: TorchScalarVariable
+    units: um
+  OTRS:IN20:571:YRMS: 
+    variable_class: TorchScalarVariable
+    units: um
+  sigma_z: 
+    variable_class: TorchScalarVariable
+    units: m
+  norm_emit_x: 
+    variable_class: TorchScalarVariable
+    units: m.rad
+  norm_emit_y: 
+    variable_class: TorchScalarVariable
+    units: m.rad
 model: resources/model.pt
 input_transformers: [resources/input_pv_to_sim.pt, resources/input_sim_to_nn.pt]
 output_transformers: [resources/output_sim_to_nn.pt, resources/output_pv_to_sim.pt]
