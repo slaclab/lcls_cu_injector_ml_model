@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lcls-cu-inj-model"
+version = "0.1.0"
+description = "LCLS Cu Inj PyTorch model package"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "lume-torch @ git+https://github.com/lume-science/lume-torch", 
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+]
+
+[tool.setuptools.packages.find]
+include = ["lcls_cu_inj_model*"]
+
+[tool.setuptools.package-data]
+lcls_fel_model = ["resources/*"]
