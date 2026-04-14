@@ -82,3 +82,11 @@ We call this computed PV `CAMR:IN20:186:R_DIST`. Therefore, when pulling data fr
 
 ### Read-only inputs
 Inputs `CAMR:IN20:186:R_DIST` and `Pulse_length` are set as read-only even though the model was trained over a range of values for these variables. The other read-only variables were constant during the training, as apparent from their value_range attribute.
+
+## To load packaged model
+After doing pip install of this repository 
+```python
+from lcls_fel_model import load_model
+model = load_model()
+print(model.evaluate({"QUAD:IN20:425:BCTRL": -1}))
+```
