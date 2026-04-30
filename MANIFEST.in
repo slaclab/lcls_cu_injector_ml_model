@@ -1,4 +1,4 @@
-include lcls-cu-inj-model/resources/*.yaml
-include lcls-cu-inj-model/resources/*.pt
+include lcls_cu_inj_model/resources/*.yaml
+include lcls_cu_inj_model/resources/*.pt
 include README.md
 include examples/*.py

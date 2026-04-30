@@ -22,4 +22,4 @@ dev = [
 include = ["lcls_cu_inj_model*"]
 
 [tool.setuptools.package-data]
-lcls_fel_model = ["resources/*"]
+lcls_cu_inj_model = ["resources/*"]
