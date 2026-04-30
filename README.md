@@ -86,7 +86,7 @@ Inputs `CAMR:IN20:186:R_DIST` and `Pulse_length` are set as read-only even thoug
 ## To load packaged model
 After doing pip install of this repository 
 ```python
-from lcls_fel_model import load_model
+from lcls_cu_inj_model import load_model
 model = load_model()
 print(model.evaluate({"QUAD:IN20:425:BCTRL": -1}))
 ```
