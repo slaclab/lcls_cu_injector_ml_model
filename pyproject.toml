@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lcls-cu-inj-model"
+version = "0.1.0"
+description = "PyTorch model and LUME-Torch wrapper for LCLS Cu injector surrogate"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "lume-torch @ git+https://github.com/lume-science/lume-torch"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
+[tool.setuptools.packages.find]
+include = ["lcls_cu_inj_model*"]
+
+[tool.setuptools.package-data]
+lcls_cu_inj_model = ["resources/*"]
