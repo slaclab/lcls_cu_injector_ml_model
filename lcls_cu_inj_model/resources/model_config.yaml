@@ -111,7 +111,7 @@ output_variables:
     unit: m.rad
   norm_emit_y: 
     variable_class: TorchScalarVariable
-    units: m.rad
+    unit: m.rad
 model: model.pt
 input_transformers: [input_pv_to_sim.pt, input_sim_to_nn.pt]
 output_transformers: [output_sim_to_nn.pt, output_pv_to_sim.pt]

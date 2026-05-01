@@ -16,22 +16,16 @@ def get_resource_path(filename):
     return str(resource_path)
 
 
-def load_model(use_cpu=False):
+def load_model():
     """
-    Load the LCLS FEL TorchModel.
-    
-    Args:
-        use_cpu (bool): If True, loads the CPU version of the model.
-                       Default is False (uses GPU version).
+    Load the LCLS CU Injector TorchModel.
     
     Returns:
         TorchModel: Loaded model instance ready for inference.
     
     Example:
-        >>> from lcls_fel_model import load_model
+        >>> from lcls_cu_inj_model import load_model
         >>> model = load_model()
-        >>> # or for CPU
-        >>> model = load_model(use_cpu=True)
     """
     config_path = get_resource_path("model_config.yaml")
     
